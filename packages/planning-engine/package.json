@@ -1,0 +1,27 @@
+{
+  "name": "@pm-app/planning-engine",
+  "version": "1.0.0",
+  "description": "Planning algorithms for Project Management App",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["planning", "algorithms", "cpm", "pert"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@pm-app/shared": "workspace:*",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "typescript": "^5.2.2",
+    "jest": "^29.6.0",
+    "@types/jest": "^29.5.4",
+    "ts-jest": "^29.1.1"
+  }
+}

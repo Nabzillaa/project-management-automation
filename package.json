@@ -1,0 +1,28 @@
+{
+  "name": "project-management-app",
+  "version": "1.0.0",
+  "description": "Comprehensive project management application with automated planning",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"packages/**/src/**/*.{ts,tsx}\"",
+    "db:generate": "pnpm --filter database db:generate",
+    "db:migrate": "pnpm --filter database db:migrate",
+    "db:studio": "pnpm --filter database db:studio"
+  },
+  "keywords": ["project-management", "planning", "typescript", "react", "node"],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.18.1",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "concurrently": "^8.2.1",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  }
+}

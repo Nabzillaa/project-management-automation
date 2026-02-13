@@ -1,0 +1,494 @@
+// Prisma Schema for Project Management Application
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// USER & AUTHENTICATION MODELS
+// ===================================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String?
+  firstName     String
+  lastName      String
+  avatarUrl     String?
+  microsoftId   String?  @unique
+  role          String   @default("member") // admin, manager, member
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  createdProjects       Project[]
+  assignedTasks         Task[]               @relation("AssignedTasks")
+  createdTasks          Task[]               @relation("CreatedTasks")
+  organizationMembers   OrganizationMember[]
+  resources             Resource[]
+  timeEntries           TimeEntry[]
+  notifications         Notification[]
+  reminders             Reminder[]
+  integrationCredentials IntegrationCredential[]
+  createdCosts          CostEntry[]
+  planningSessions      PlanningSession[]
+  reports               Report[]
+
+  @@index([email])
+  @@index([microsoftId])
+  @@map("users")
+}
+
+// ===================================
+// ORGANIZATION MODELS
+// ===================================
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members                OrganizationMember[]
+  projects               Project[]
+  resources              Resource[]
+  integrationCredentials IntegrationCredential[]
+  syncHistory            SyncHistory[]
+  syncConfigurations     SyncConfiguration[]
+  reports                Report[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  role           String   @default("member") // admin, manager, member
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+// ===================================
+// PROJECT MODELS
+// ===================================
+
+model Project {
+  id               String    @id @default(uuid())
+  organizationId   String
+  name             String
+  description      String?
+  status           String    @default("planning") // planning, active, on_hold, completed, cancelled
+  priority         String    @default("medium") // low, medium, high, critical
+  startDate        DateTime?
+  endDate          DateTime?
+  plannedStartDate DateTime?
+  plannedEndDate   DateTime?
+  budget           Decimal?  @db.Decimal(15, 2)
+  actualCost       Decimal   @default(0) @db.Decimal(15, 2)
+  jiraProjectKey   String?
+  jiraProjectId    String?
+  color            String?
+  createdBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creator             User                  @relation(fields: [createdBy], references: [id])
+  tasks               Task[]
+  resourceAllocations ResourceAllocation[]
+  costEntries         CostEntry[]
+  budgetAlerts        BudgetAlert[]
+  reports             Report[]
+  planningSessions    PlanningSession[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([jiraProjectKey])
+  @@map("projects")
+}
+
+// ===================================
+// TASK MODELS
+// ===================================
+
+model Task {
+  id                String    @id @default(uuid())
+  projectId         String
+  parentTaskId      String?
+  title             String
+  description       String?
+  status            String    @default("todo") // todo, in_progress, review, blocked, completed
+  priority          String    @default("medium") // low, medium, high, critical
+  taskType          String    @default("task") // task, milestone, epic
+  estimatedHours    Decimal?  @db.Decimal(8, 2)
+  actualHours       Decimal   @default(0) @db.Decimal(8, 2)
+  optimisticHours   Decimal?  @db.Decimal(8, 2)
+  mostLikelyHours   Decimal?  @db.Decimal(8, 2)
+  pessimisticHours  Decimal?  @db.Decimal(8, 2)
+  expectedHours     Decimal?  @db.Decimal(8, 2)
+  startDate         DateTime?
+  endDate           DateTime?
+  plannedStartDate  DateTime?
+  plannedEndDate    DateTime?
+  completedAt       DateTime?
+  earliestStart     DateTime?
+  earliestFinish    DateTime?
+  latestStart       DateTime?
+  latestFinish      DateTime?
+  slackTime         Decimal?  @db.Decimal(8, 2)
+  isCriticalPath    Boolean   @default(false)
+  estimatedCost     Decimal?  @db.Decimal(15, 2)
+  actualCost        Decimal   @default(0) @db.Decimal(15, 2)
+  jiraIssueKey      String?
+  jiraIssueId       String?
+  assignedTo        String?
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  project              Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentTask           Task?                @relation("TaskHierarchy", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks             Task[]               @relation("TaskHierarchy")
+  assignee             User?                @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  creator              User                 @relation("CreatedTasks", fields: [createdBy], references: [id])
+  predecessorDeps      TaskDependency[]     @relation("PredecessorDeps")
+  successorDeps        TaskDependency[]     @relation("SuccessorDeps")
+  resourceAllocations  ResourceAllocation[]
+  timeEntries          TimeEntry[]
+  costEntries          CostEntry[]
+  reminders            Reminder[]
+
+  @@index([projectId])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([parentTaskId])
+  @@index([isCriticalPath])
+  @@index([jiraIssueKey])
+  @@map("tasks")
+}
+
+// ===================================
+// TASK DEPENDENCY MODEL
+// ===================================
+
+model TaskDependency {
+  id                String   @id @default(uuid())
+  predecessorTaskId String
+  successorTaskId   String
+  dependencyType    String   @default("finish_to_start") // finish_to_start, start_to_start, finish_to_finish, start_to_finish
+  lagDays           Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  // Relations
+  predecessorTask Task @relation("PredecessorDeps", fields: [predecessorTaskId], references: [id], onDelete: Cascade)
+  successorTask   Task @relation("SuccessorDeps", fields: [successorTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([predecessorTaskId, successorTaskId])
+  @@index([predecessorTaskId])
+  @@index([successorTaskId])
+  @@map("task_dependencies")
+}
+
+// ===================================
+// RESOURCE MODELS
+// ===================================
+
+model Resource {
+  id                     String   @id @default(uuid())
+  organizationId         String
+  name                   String
+  type                   String // person, equipment, material, budget
+  userId                 String?
+  costPerHour            Decimal? @db.Decimal(10, 2)
+  availabilityHoursPerDay Decimal  @default(8) @db.Decimal(5, 2)
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  // Relations
+  organization        Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User?                 @relation(fields: [userId], references: [id])
+  resourceAllocations ResourceAllocation[]
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("resources")
+}
+
+model ResourceAllocation {
+  id                   String   @id @default(uuid())
+  resourceId           String
+  taskId               String
+  projectId            String
+  allocatedHours       Decimal  @db.Decimal(8, 2)
+  startDate            DateTime
+  endDate              DateTime
+  allocationPercentage Decimal  @default(100) @db.Decimal(5, 2)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId])
+  @@index([taskId])
+  @@index([projectId])
+  @@index([startDate, endDate])
+  @@map("resource_allocations")
+}
+
+// ===================================
+// COST TRACKING MODELS
+// ===================================
+
+model CostEntry {
+  id          String   @id @default(uuid())
+  projectId   String
+  taskId      String?
+  category    String // labor, materials, equipment, software, overhead
+  description String?
+  amount      Decimal  @db.Decimal(15, 2)
+  entryDate   DateTime
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  creator User    @relation(fields: [createdBy], references: [id])
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([entryDate])
+  @@map("cost_entries")
+}
+
+model BudgetAlert {
+  id                  String   @id @default(uuid())
+  projectId           String
+  alertType           String // warning, exceeded, critical
+  thresholdPercentage Decimal  @db.Decimal(5, 2)
+  budgetAmount        Decimal  @db.Decimal(15, 2)
+  actualAmount        Decimal  @db.Decimal(15, 2)
+  message             String
+  isResolved          Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([isResolved])
+  @@map("budget_alerts")
+}
+
+// ===================================
+// TIME TRACKING MODEL
+// ===================================
+
+model TimeEntry {
+  id          String   @id @default(uuid())
+  taskId      String
+  userId      String
+  hours       Decimal  @db.Decimal(8, 2)
+  entryDate   DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([entryDate])
+  @@map("time_entries")
+}
+
+// ===================================
+// NOTIFICATION MODELS
+// ===================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String // task_assigned, task_overdue, budget_alert, project_update
+  title     String
+  message   String?
+  linkUrl   String?
+  isRead    Boolean  @default(false)
+  emailSent Boolean  @default(false)
+  teamsSent Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Reminder {
+  id           String   @id @default(uuid())
+  userId       String
+  taskId       String
+  reminderDate DateTime
+  isSent       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reminderDate])
+  @@index([isSent])
+  @@map("reminders")
+}
+
+// ===================================
+// INTEGRATION MODELS
+// ===================================
+
+model IntegrationCredential {
+  id               String    @id @default(uuid())
+  organizationId   String
+  userId           String
+  integrationType  String // jira, microsoft, slack
+  accessToken      String
+  refreshToken     String?
+  tokenExpiresAt   DateTime?
+  additionalData   Json?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, integrationType])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([integrationType])
+  @@map("integration_credentials")
+}
+
+model SyncHistory {
+  id               String    @id @default(uuid())
+  integrationType  String
+  organizationId   String
+  syncType         String // import, export, bidirectional
+  status           String // success, partial, failed
+  itemsSynced      Int       @default(0)
+  errorMessage     String?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([integrationType])
+  @@map("sync_history")
+}
+
+// ===================================
+// REPORT MODELS
+// ===================================
+
+model Report {
+  id                String   @id @default(uuid())
+  organizationId    String
+  projectId         String
+  reportType        String // burndown, budget, executive_summary, timeline
+  title             String
+  content           Json
+  generatedForDate  DateTime
+  generatedBy       String
+  createdAt         DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  generator    User         @relation(fields: [generatedBy], references: [id])
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([reportType])
+  @@index([generatedForDate])
+  @@map("reports")
+}
+
+// ===================================
+// PLANNING ALGORITHM MODEL
+// ===================================
+
+model PlanningSession {
+  id               String   @id @default(uuid())
+  projectId        String
+  algorithmUsed    String // cpm, pert, resource_leveling
+  inputParameters  Json
+  outputResults    Json
+  executionTimeMs  Int
+  createdBy        String
+  createdAt        DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id])
+
+  @@index([projectId])
+  @@map("planning_sessions")
+}
+
+// ===================================
+// SYNC CONFIGURATION MODEL
+// ===================================
+
+model SyncConfiguration {
+  id              String   @id @default(uuid())
+  organizationId  String
+  integrationType String   // 'jira', 'microsoft'
+  syncEnabled     Boolean  @default(true)
+  syncInterval    Int      @default(900) // seconds (15 min)
+  lastSyncAt      DateTime?
+  statusMapping   Json?    // { "todo": "To Do", "in_progress": "In Progress" }
+  priorityMapping Json?    // { "low": "Low", "medium": "Medium", "high": "High" }
+  autoExport      Boolean  @default(false)
+  autoImport      Boolean  @default(true)
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([organizationId, integrationType])
+  @@index([organizationId])
+  @@map("sync_configurations")
+}

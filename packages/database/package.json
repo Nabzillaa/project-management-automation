@@ -1,0 +1,35 @@
+{
+  "name": "@pm-app/database",
+  "version": "1.0.0",
+  "description": "Database schemas and migrations for Project Management App",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "keywords": [
+    "prisma",
+    "database"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.4.2",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/node": "^20.19.30",
+    "prisma": "^5.4.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^3.14.0",
+    "typescript": "^5.2.2"
+  }
+}
