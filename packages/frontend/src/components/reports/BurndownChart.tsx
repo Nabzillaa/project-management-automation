@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Paper,
@@ -7,6 +7,9 @@ import {
   CardContent,
   Grid,
   Alert,
+  TextField,
+  Stack,
+  Button,
 } from '@mui/material';
 import {
   LineChart,
@@ -40,7 +43,44 @@ interface BurndownData {
   actualRemaining: number | null;
 }
 
+// Helper function to format hours as years + days + hours
+// Assumes 8 hours/day and 250 working days/year (2000 hours/year)
+function formatHours(hours: number): string {
+  if (hours < 8) {
+    return `${hours.toFixed(2)}h`;
+  }
+
+  const HOURS_PER_DAY = 8;
+  const HOURS_PER_YEAR = 2000; // 250 working days * 8 hours
+
+  // Calculate years
+  const years = Math.floor(hours / HOURS_PER_YEAR);
+  let remaining = hours - (years * HOURS_PER_YEAR);
+
+  // Calculate days from remaining hours
+  const days = Math.floor(remaining / HOURS_PER_DAY);
+  remaining = remaining - (days * HOURS_PER_DAY);
+
+  const remainingHours = remaining;
+
+  // Build the string based on what we have
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years}y`);
+  if (days > 0) parts.push(`${days}d`);
+  if (remainingHours >= 0.1) parts.push(`${remainingHours.toFixed(1)}h`);
+
+  // If no parts (less than 0.1 hours), return just hours
+  if (parts.length === 0) {
+    return years > 0 ? `${years}y` : days > 0 ? `${days}d` : '0h';
+  }
+
+  return parts.join(' ');
+}
+
 function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChartProps) {
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+
   const burndownData = useMemo(() => {
     if (tasks.length === 0) return [];
 
@@ -105,9 +145,26 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
     return data;
   }, [tasks, projectStartDate, projectEndDate]);
 
-  // Calculate statistics
+  // Filter burndown data by date range
+  const filteredBurndownData = useMemo(() => {
+    if (burndownData.length === 0) return [];
+    if (!filterStartDate && !filterEndDate) return burndownData;
+
+    const startFilter = filterStartDate ? new Date(filterStartDate) : null;
+    const endFilter = filterEndDate ? new Date(filterEndDate) : null;
+
+    return burndownData.filter((item) => {
+      if (startFilter && isBefore(item.dateObj, startFilter)) return false;
+      if (endFilter && isAfter(item.dateObj, endFilter)) return false;
+      return true;
+    });
+  }, [burndownData, filterStartDate, filterEndDate]);
+
+  // Calculate statistics (respecting date range filter)
   const statistics = useMemo(() => {
-    if (burndownData.length === 0) {
+    const dataSource = filteredBurndownData.length > 0 ? filteredBurndownData : burndownData;
+
+    if (dataSource.length === 0) {
       return {
         totalHours: 0,
         completedHours: 0,
@@ -134,15 +191,16 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
     const remainingHours = totalHours - completedHours;
     const percentComplete = totalHours > 0 ? (completedHours / totalHours) * 100 : 0;
 
-    // Find today's data point
+    // Find the last data point in the filtered range
     const today = startOfDay(new Date());
-    const todayData = burndownData.find((d) => d.dateObj.getTime() === today.getTime());
+    const lastDataPoint = dataSource[dataSource.length - 1];
+    const referenceData = lastDataPoint || burndownData.find((d) => d.dateObj.getTime() === today.getTime());
 
     let isAhead = false;
     let variance = 0;
 
-    if (todayData && todayData.actualRemaining !== null) {
-      variance = todayData.idealRemaining - todayData.actualRemaining;
+    if (referenceData && referenceData.actualRemaining !== null) {
+      variance = referenceData.idealRemaining - referenceData.actualRemaining;
       isAhead = variance < 0; // Ahead if actual is less than ideal (completed more)
     }
 
@@ -154,7 +212,12 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
       isAhead,
       variance: Math.abs(variance),
     };
-  }, [burndownData, tasks]);
+  }, [burndownData, filteredBurndownData, tasks]);
+
+  const handleResetFilters = () => {
+    setFilterStartDate('');
+    setFilterEndDate('');
+  };
 
   if (tasks.length === 0) {
     return (
@@ -194,6 +257,36 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
         Track project progress against the ideal burndown rate
       </Typography>
 
+      {/* Date Range Filter */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+        <TextField
+          type="date"
+          label="Start Date"
+          value={filterStartDate}
+          onChange={(e) => setFilterStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          size="small"
+          sx={{ flex: 1, maxWidth: { xs: '100%', sm: 250 } }}
+        />
+        <TextField
+          type="date"
+          label="End Date"
+          value={filterEndDate}
+          onChange={(e) => setFilterEndDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          size="small"
+          sx={{ flex: 1, maxWidth: { xs: '100%', sm: 250 } }}
+        />
+        <Button
+          variant="outlined"
+          onClick={handleResetFilters}
+          disabled={!filterStartDate && !filterEndDate}
+          sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
+        >
+          Reset
+        </Button>
+      </Stack>
+
       {/* Statistics Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
@@ -205,7 +298,7 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
                   Total Hours
                 </Typography>
               </Box>
-              <Typography variant="h5">{statistics.totalHours}h</Typography>
+              <Typography variant="h5">{formatHours(statistics.totalHours)}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -219,7 +312,7 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
                 </Typography>
               </Box>
               <Typography variant="h5" color="success.main">
-                {statistics.completedHours}h
+                {formatHours(statistics.completedHours)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 ({statistics.percentComplete}%)
@@ -237,7 +330,7 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
                 </Typography>
               </Box>
               <Typography variant="h5" color="warning.main">
-                {statistics.remainingHours}h
+                {formatHours(statistics.remainingHours)}
               </Typography>
             </CardContent>
           </Card>
@@ -269,7 +362,7 @@ function BurndownChart({ tasks, projectStartDate, projectEndDate }: BurndownChar
       <Box sx={{ width: '100%', height: 400 }}>
         <ResponsiveContainer>
           <LineChart
-            data={burndownData}
+            data={filteredBurndownData}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
