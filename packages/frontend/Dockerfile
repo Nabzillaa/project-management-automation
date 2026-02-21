@@ -23,6 +23,7 @@ ENV VITE_API_URL=$VITE_API_URL
 
 # Build shared types then frontend
 RUN pnpm --filter @pm-app/shared build
+RUN pnpm --filter @pm-app/frontend build
 
 ### Production stage ###
 FROM caddy:2-alpine
