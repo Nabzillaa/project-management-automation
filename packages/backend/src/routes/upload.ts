@@ -122,7 +122,7 @@ router.post(
 router.post('/excel', upload.single('file'), async (req: Request, res: Response<ApiResponse<any>>) => {
   // Redirect to /file endpoint
   req.url = '/file';
-  return router.handle(req, res, () => {});
+  return (router as any).handle(req, res, () => {});
 });
 
 /**
