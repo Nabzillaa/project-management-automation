@@ -23,7 +23,6 @@ ENV VITE_API_URL=$VITE_API_URL
 
 # Build shared types then frontend
 RUN pnpm --filter @pm-app/shared build
-RUN HTTP/3 skipped because it requires TLS
 
 ### Production stage ###
 FROM caddy:2-alpine
