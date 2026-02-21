@@ -44,12 +44,8 @@ router.post('/cpm/:projectId', async (req: Request, res: Response): Promise<void
     // Transform tasks into CPM format
     const cpmTasks = project.tasks.map(task => ({
       id: task.id,
-      duration: task.estimatedHours || task.expectedHours || 0,
-      dependencies: task.predecessorDeps.map((dep: any) => ({
-        taskId: dep.predecessorTaskId,
-        type: dep.dependencyType,
-        lag: dep.lagDays || 0,
-      })),
+      duration: Number(task.estimatedHours || task.expectedHours || 0),
+      dependencies: task.predecessorDeps.map((dep: any) => dep.predecessorTaskId),
     }));
 
     // Calculate CPM
@@ -65,8 +61,8 @@ router.post('/cpm/:projectId', async (req: Request, res: Response): Promise<void
           earliestFinish: result.earliestFinish,
           latestStart: result.latestStart,
           latestFinish: result.latestFinish,
-          slack: result.slack,
-          isCriticalPath: result.isCriticalPath,
+          slackTime: result.slack,
+          isCriticalPath: result.isCritical,
         },
       });
     });
@@ -75,7 +71,7 @@ router.post('/cpm/:projectId', async (req: Request, res: Response): Promise<void
 
     // Get critical path tasks
     const criticalPath = cpmResults
-      .filter(r => r.isCriticalPath)
+      .filter(r => r.isCritical)
       .map(r => ({
         taskId: r.taskId,
         task: project.tasks.find(t => t.id === r.taskId)?.title,
@@ -230,12 +226,8 @@ router.post('/auto-schedule/:projectId', async (req: Request, res: Response): Pr
     // Transform tasks into CPM format
     const cpmTasks = project.tasks.map(task => ({
       id: task.id,
-      duration: task.estimatedHours || task.expectedHours || 8,
-      dependencies: task.predecessorDeps.map((dep: any) => ({
-        taskId: dep.predecessorTaskId,
-        type: dep.dependencyType,
-        lag: dep.lagDays || 0,
-      })),
+      duration: Number(task.estimatedHours || task.expectedHours || 8),
+      dependencies: task.predecessorDeps.map((dep: any) => dep.predecessorTaskId),
     }));
 
     // Calculate CPM to get scheduled dates
@@ -246,7 +238,7 @@ router.post('/auto-schedule/:projectId', async (req: Request, res: Response): Pr
     const updatePromises = cpmResults.map(result => {
       // Calculate end date based on earliest start + duration
       const task = project.tasks.find(t => t.id === result.taskId);
-      const durationHours = task?.estimatedHours || task?.expectedHours || 8;
+      const durationHours = Number(task?.estimatedHours || task?.expectedHours || 8);
       const endDate = new Date(result.earliestStart);
       endDate.setHours(endDate.getHours() + durationHours);
 
@@ -259,8 +251,8 @@ router.post('/auto-schedule/:projectId', async (req: Request, res: Response): Pr
           earliestFinish: result.earliestFinish,
           latestStart: result.latestStart,
           latestFinish: result.latestFinish,
-          slack: result.slack,
-          isCriticalPath: result.isCriticalPath,
+          slackTime: result.slack,
+          isCriticalPath: result.isCritical,
         },
       });
     });

@@ -15,20 +15,20 @@ const createProjectSchema = z.object({
   organizationId: z.string().uuid(),
   name: z.string().min(1).max(255),
   description: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  priority: z.nativeEnum(Priority),
   budget: z.number().positive().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
 });
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
-  status: z.enum(['planning', 'active', 'on_hold', 'completed', 'cancelled']).optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  status: z.nativeEnum(ProjectStatus).optional(),
+  priority: z.nativeEnum(Priority).optional(),
   budget: z.number().positive().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
 });
 
 /**

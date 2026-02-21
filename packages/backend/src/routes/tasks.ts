@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { CreateTaskRequest, UpdateTaskRequest } from '@pm-app/shared';
+import { CreateTaskRequest, UpdateTaskRequest, Priority, TaskStatus, TaskType } from '@pm-app/shared';
 import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 import { authenticate } from '../middleware/auth.js';
@@ -16,27 +16,27 @@ const createTaskSchema = z.object({
   parentTaskId: z.string().uuid().optional(),
   title: z.string().min(1).max(255),
   description: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  taskType: z.enum(['task', 'milestone', 'epic']),
+  priority: z.nativeEnum(Priority),
+  taskType: z.nativeEnum(TaskType),
   estimatedHours: z.number().positive().optional(),
   optimisticHours: z.number().positive().optional(),
   mostLikelyHours: z.number().positive().optional(),
   pessimisticHours: z.number().positive().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
   assignedTo: z.string().uuid().optional(),
 });
 
 const updateTaskSchema = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
-  status: z.enum(['todo', 'in_progress', 'review', 'blocked', 'completed']).optional(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  status: z.nativeEnum(TaskStatus).optional(),
+  priority: z.nativeEnum(Priority).optional(),
   estimatedHours: z.number().positive().optional(),
   actualHours: z.number().nonnegative().optional(),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-  assignedTo: z.string().uuid().optional().nullable(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  assignedTo: z.string().uuid().optional(),
 });
 
 /**

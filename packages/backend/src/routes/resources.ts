@@ -474,7 +474,7 @@ router.get('/:id/utilization', async (req: Request, res: Response): Promise<void
 
     // Calculate total allocated hours
     const totalAllocated = resource.resourceAllocations.reduce((sum, alloc) => {
-      return sum + (alloc.allocatedHours || 0);
+      return sum + Number(alloc.allocatedHours || 0);
     }, 0);
 
     // Calculate available hours based on date range
@@ -543,7 +543,7 @@ router.get('/organization/:organizationId/summary', async (req: Request, res: Re
 
     const summary = resources.map((resource) => {
       const totalAllocated = resource.resourceAllocations.reduce((sum, alloc) => {
-        return sum + (alloc.allocatedHours || 0);
+        return sum + Number(alloc.allocatedHours || 0);
       }, 0);
 
       const start = new Date(startDate as string);
