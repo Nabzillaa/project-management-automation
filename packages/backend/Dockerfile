@@ -1,6 +1,9 @@
 ### Builder stage ###
 FROM node:20-alpine AS builder
 
+# OpenSSL is required by Prisma on Alpine
+RUN apk add --no-cache openssl
+
 RUN corepack enable && corepack prepare pnpm@10.18.1 --activate
 
 WORKDIR /app
@@ -36,6 +39,9 @@ FROM node:20-alpine AS runner
 ENV NODE_ENV=production
 
 WORKDIR /app
+
+# OpenSSL is required by Prisma on Alpine (for migrate deploy at runtime)
+RUN apk add --no-cache openssl
 
 # Create a non-root user for security
 RUN addgroup -S appgroup && adduser -S -G appgroup appuser
