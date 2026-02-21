@@ -14,38 +14,40 @@ const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   return msg;
 });
 
-// Create logger
-export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: combine(
-    errors({ stack: true }),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    logFormat
-  ),
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: combine(colorize(), logFormat),
-    }),
-    // File transport for errors
+const isProduction = process.env.NODE_ENV === 'production';
+
+const transports: winston.transport[] = [
+  new winston.transports.Console({
+    format: combine(colorize(), logFormat),
+  }),
+];
+
+// File transports only in non-production (containers use stdout/stderr)
+if (!isProduction) {
+  transports.push(
     new winston.transports.File({
       filename: 'logs/error.log',
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
-    // File transport for all logs
     new winston.transports.File({
       filename: 'logs/combined.log',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-    }),
-  ],
-});
-
-// If not in production, log to console with colors
-if (process.env.NODE_ENV !== 'production') {
-  logger.level = 'debug';
+    })
+  );
 }
+
+// Create logger
+export const logger = winston.createLogger({
+  level: isProduction ? (process.env.LOG_LEVEL || 'info') : 'debug',
+  format: combine(
+    errors({ stack: true }),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
+  ),
+  transports,
+});
 
 export default logger;
