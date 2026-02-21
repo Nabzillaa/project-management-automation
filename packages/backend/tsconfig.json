@@ -15,9 +15,9 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@pm-app/shared": ["../../packages/shared/src/index"],
-      "@pm-app/planning-engine": ["../../packages/planning-engine/src/index"],
-      "@pm-app/database": ["../../packages/database/src/index"]
+      "@pm-app/shared": ["../../packages/shared/dist/index"],
+      "@pm-app/planning-engine": ["../../packages/planning-engine/dist/index"],
+      "@pm-app/database": ["../../packages/database/dist/index"]
     }
   },
   "include": ["src/**/*"],
