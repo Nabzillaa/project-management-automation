@@ -5,7 +5,7 @@ RUN corepack enable && corepack prepare pnpm@10.18.1 --activate
 WORKDIR /app
 
 # Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json .npmrc ./
 COPY packages/shared/package.json packages/shared/tsconfig.json ./packages/shared/
 COPY packages/planning-engine/package.json packages/planning-engine/tsconfig.json ./packages/planning-engine/
 COPY packages/database/package.json packages/database/tsconfig.json ./packages/database/

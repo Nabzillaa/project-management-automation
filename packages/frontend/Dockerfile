@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10.18.1 --activate
 WORKDIR /app
 
 # Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json .npmrc ./
 COPY packages/shared/package.json packages/shared/tsconfig.json ./packages/shared/
 COPY packages/frontend/package.json packages/frontend/tsconfig.json ./packages/frontend/
 
@@ -26,15 +26,7 @@ RUN pnpm --filter @pm-app/shared build
 RUN pnpm --filter @pm-app/frontend build
 
 ### Production stage ###
-FROM node:20-alpine
+FROM caddy:2-alpine
 
-RUN npm install -g serve
-
-WORKDIR /app
-
-COPY --from=builder /app/packages/frontend/dist ./dist
-
-EXPOSE 3000
-
-# Bind to 0.0.0.0 so Railway can reach the app; PORT is set at runtime
-CMD ["sh", "-c", "serve -s dist --listen 0.0.0.0:${PORT:-3000}"]
+COPY packages/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/packages/frontend/dist /usr/share/caddy
