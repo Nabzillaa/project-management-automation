@@ -34,6 +34,7 @@ WORKDIR /app
 
 COPY --from=builder /app/packages/frontend/dist ./dist
 
-EXPOSE ${PORT:-3000}
+EXPOSE 3000
 
-CMD sh -c "serve -s dist -l ${PORT:-3000}"
+# Bind to 0.0.0.0 so Railway can reach the app; PORT is set at runtime
+CMD ["sh", "-c", "serve -s dist --listen 0.0.0.0:${PORT:-3000}"]

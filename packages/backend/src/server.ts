@@ -109,8 +109,9 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // SERVER START
 // ===================================
 
-app.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(Number(PORT), HOST, () => {
+  logger.info(`🚀 Server running on ${HOST}:${PORT}`);
   logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`🔗 API: http://localhost:${PORT}/api`);
 });

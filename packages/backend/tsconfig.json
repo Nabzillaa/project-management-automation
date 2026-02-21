@@ -12,13 +12,7 @@
     "incremental": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "baseUrl": ".",
-    "paths": {
-      "@pm-app/shared": ["../../packages/shared/dist/index"],
-      "@pm-app/planning-engine": ["../../packages/planning-engine/dist/index"],
-      "@pm-app/database": ["../../packages/database/dist/index"]
-    }
+    "noImplicitAny": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

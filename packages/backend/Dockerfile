@@ -27,7 +27,7 @@ RUN cd packages/database && npx prisma generate
 RUN pnpm --filter @pm-app/database build
 RUN pnpm --filter @pm-app/backend build
 
-EXPOSE ${PORT:-3001}
+EXPOSE 3001
 
-# Run migrations then start server
-CMD sh -c "cd packages/database && npx prisma migrate deploy && cd ../.. && node packages/backend/dist/server.js"
+# Run migrations then start server (PORT is set by Railway at runtime)
+CMD ["sh", "-c", "cd packages/database && npx prisma migrate deploy && cd ../.. && node packages/backend/dist/server.js"]
