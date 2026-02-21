@@ -474,14 +474,14 @@ router.get('/:id/utilization', async (req: Request, res: Response): Promise<void
 
     // Calculate total allocated hours
     const totalAllocated = resource.resourceAllocations.reduce((sum, alloc) => {
-      return sum + (alloc.hoursAllocated || 0);
+      return sum + (alloc.allocatedHours || 0);
     }, 0);
 
     // Calculate available hours based on date range
     const start = new Date(startDate as string);
     const end = new Date(endDate as string);
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    const availableHours = daysDiff * 8 * ((resource.availability || 100) / 100);
+    const availableHours = daysDiff * 8 * ((Number(resource.availabilityHoursPerDay || 8)) / 8);
 
     const utilizationPercentage = availableHours > 0 ? (totalAllocated / availableHours) * 100 : 0;
 
@@ -543,13 +543,13 @@ router.get('/organization/:organizationId/summary', async (req: Request, res: Re
 
     const summary = resources.map((resource) => {
       const totalAllocated = resource.resourceAllocations.reduce((sum, alloc) => {
-        return sum + (alloc.hoursAllocated || 0);
+        return sum + (alloc.allocatedHours || 0);
       }, 0);
 
       const start = new Date(startDate as string);
       const end = new Date(endDate as string);
       const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-      const availableHours = daysDiff * 8 * ((resource.availability || 100) / 100);
+      const availableHours = daysDiff * 8 * ((Number(resource.availabilityHoursPerDay || 8)) / 8);
 
       const utilizationPercentage = availableHours > 0 ? (totalAllocated / availableHours) * 100 : 0;
 

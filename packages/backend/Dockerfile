@@ -24,6 +24,7 @@ COPY packages/backend/ ./packages/backend/
 RUN pnpm --filter @pm-app/shared build
 RUN pnpm --filter @pm-app/planning-engine build
 RUN cd packages/database && npx prisma generate
+RUN pnpm --filter @pm-app/database build
 RUN pnpm --filter @pm-app/backend build
 
 EXPOSE ${PORT:-3001}

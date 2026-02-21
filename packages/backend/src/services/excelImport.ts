@@ -439,7 +439,7 @@ function mapStatus(status: string): string {
     return 'in_progress';
   }
   if (statusLower.includes('review') || statusLower.includes('testing') || statusLower.includes('qa')) {
-    return 'in_review';
+    return 'review';
   }
   if (statusLower.includes('blocked') || statusLower.includes('hold')) {
     return 'blocked';

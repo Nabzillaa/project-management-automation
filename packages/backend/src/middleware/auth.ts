@@ -131,7 +131,7 @@ export const generateToken = (userId: string, email: string, role: UserRole): st
   return jwt.sign(
     { userId, email, role },
     process.env.JWT_SECRET!,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions
   );
 };
 
@@ -142,7 +142,7 @@ export const generateRefreshToken = (userId: string): string => {
   return jwt.sign(
     { userId },
     process.env.REFRESH_TOKEN_SECRET!,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d' }
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d' } as jwt.SignOptions
   );
 };
 

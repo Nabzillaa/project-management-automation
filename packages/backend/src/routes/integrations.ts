@@ -340,7 +340,7 @@ router.get('/jira/mappings/:organizationId', async (req: Request, res: Response)
       status: {
         todo: 'To Do',
         in_progress: 'In Progress',
-        in_review: 'In Review',
+        review: 'In Review',
         completed: 'Done',
         blocked: 'Blocked',
       },

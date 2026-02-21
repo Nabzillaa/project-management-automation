@@ -477,16 +477,16 @@ router.get('/project/:projectId/trend', async (req: Request, res: Response): Pro
     const costEntries = await prisma.costEntry.findMany({
       where: {
         projectId,
-        date: {
+        entryDate: {
           gte: new Date(startDate as string),
           lte: new Date(endDate as string),
         },
       },
       orderBy: {
-        date: 'asc',
+        entryDate: 'asc',
       },
       select: {
-        date: true,
+        entryDate: true,
         amount: true,
         category: true,
       },
@@ -497,7 +497,7 @@ router.get('/project/:projectId/trend', async (req: Request, res: Response): Pro
     let cumulativeTotal = 0;
 
     costEntries.forEach((entry) => {
-      const dateKey = entry.date.toISOString().split('T')[0]; // Group by day
+      const dateKey = entry.entryDate.toISOString().split('T')[0]; // Group by day
       if (!trend[dateKey]) {
         trend[dateKey] = {
           date: dateKey,

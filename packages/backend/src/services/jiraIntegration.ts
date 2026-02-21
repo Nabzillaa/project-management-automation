@@ -371,7 +371,7 @@ export function mapJiraStatus(jiraStatus: string): string {
     return 'in_progress';
   }
   if (statusLower.includes('review') || statusLower.includes('testing')) {
-    return 'in_review';
+    return 'review';
   }
   return 'todo';
 }
@@ -415,7 +415,7 @@ export function reverseMapStatus(ourStatus: string): string {
   if (statusLower === 'in_progress') {
     return 'In Progress';
   }
-  if (statusLower === 'in_review') {
+  if (statusLower === 'review') {
     return 'In Review';
   }
   return 'To Do';
