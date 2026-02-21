@@ -23,7 +23,21 @@ ENV VITE_API_URL=$VITE_API_URL
 
 # Build shared types then frontend
 RUN pnpm --filter @pm-app/shared build
-RUN pnpm --filter @pm-app/frontend build
+RUN HTTP/3 skipped because it requires TLS
+server running
+autosaved config (load with --resume flag)
+serving initial configuration
+cleaning storage unit
+finished cleaning storage units
+maxprocs: Updating GOMAXPROCS=2: determined from CPU quota
+GOMEMLIMIT is updated
+using config from file
+adapted config to JSON
+Caddyfile input is not formatted; run 'caddy fmt --overwrite' to fix inconsistencies
+admin endpoint started
+started background certificate maintenance
+HTTP/2 skipped because it requires TLS
+Starting Container
 
 ### Production stage ###
 FROM caddy:2-alpine

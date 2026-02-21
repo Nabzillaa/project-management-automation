@@ -1,4 +1,5 @@
-FROM node:20-alpine
+### Builder stage ###
+FROM node:20-alpine AS builder
 
 RUN corepack enable && corepack prepare pnpm@10.18.1 --activate
 
@@ -11,7 +12,7 @@ COPY packages/planning-engine/package.json packages/planning-engine/tsconfig.jso
 COPY packages/database/package.json packages/database/tsconfig.json ./packages/database/
 COPY packages/backend/package.json packages/backend/tsconfig.json ./packages/backend/
 
-# Install dependencies
+# Install all dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
@@ -26,6 +27,21 @@ RUN pnpm --filter @pm-app/planning-engine build
 RUN cd packages/database && npx prisma generate
 RUN pnpm --filter @pm-app/database build
 RUN pnpm --filter @pm-app/backend build
+
+### Production stage ###
+FROM node:20-alpine AS runner
+
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Create a non-root user for security
+RUN addgroup -S appgroup && adduser -S -G appgroup appuser
+
+# Copy built artifacts and dependencies from builder
+COPY --from=builder --chown=appuser:appgroup /app ./
+
+USER appuser
 
 EXPOSE 3001
 
