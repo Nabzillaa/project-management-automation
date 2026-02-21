@@ -244,7 +244,6 @@ function GanttChart({ tasks, projectStartDate, onTaskUpdate }: GanttChartProps) 
   const rowHeight = 50;
   const chartHeight = ganttTasks.length * rowHeight + 100;
 
-  const hasMoreTasks = tasks.length > showCount || (statusFilter !== 'all' || searchQuery);
   const totalMatchingTasks = useMemo(() => {
     let count = tasks.length;
     if (searchQuery) {

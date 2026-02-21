@@ -40,7 +40,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import type { Task, TaskStatus, TaskPriority } from '@pm-app/shared';
+import type { Task, TaskStatus, Priority } from '@pm-app/shared';
 import { tasksApi } from '../../services/api/tasks';
 import { integrationsApi } from '../../services/api/integrations';
 import { useSnackbar } from 'notistack';
@@ -61,10 +61,9 @@ const statusColors: Record<TaskStatus, 'default' | 'primary' | 'secondary' | 'er
   review: 'info',
   completed: 'success',
   blocked: 'error',
-  cancelled: 'error',
 };
 
-const priorityColors: Record<TaskPriority, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+const priorityColors: Record<Priority, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
   low: 'info',
   medium: 'default',
   high: 'warning',
@@ -147,7 +146,7 @@ function TaskList({ tasks, projectId, onTaskCreated, onTaskUpdated, onTaskDelete
         {
           domain: credentials.domain,
           email: credentials.email,
-          apiToken: credentials.apiToken,
+          apiToken: (credentials as any).apiToken,
         }
       );
     },
@@ -234,10 +233,6 @@ function TaskList({ tasks, projectId, onTaskCreated, onTaskUpdated, onTaskDelete
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return 'Not set';
     return new Date(date).toLocaleDateString();
-  };
-
-  const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || '?';
   };
 
   return (
@@ -361,10 +356,10 @@ function TaskList({ tasks, projectId, onTaskCreated, onTaskUpdated, onTaskDelete
                     />
                   </TableCell>
                   <TableCell>
-                    {task.assignedToUser ? (
-                      <Tooltip title={`${task.assignedToUser.firstName} ${task.assignedToUser.lastName}`}>
+                    {task.assignedTo ? (
+                      <Tooltip title={task.assignedTo}>
                         <Avatar sx={{ width: 32, height: 32, fontSize: '0.875rem' }}>
-                          {getInitials(task.assignedToUser.firstName, task.assignedToUser.lastName)}
+                          {task.assignedTo.substring(0, 2).toUpperCase()}
                         </Avatar>
                       </Tooltip>
                     ) : (
@@ -417,8 +412,8 @@ function TaskList({ tasks, projectId, onTaskCreated, onTaskUpdated, onTaskDelete
                     )}
                   </TableCell>
                   <TableCell align="center">
-                    {task._count && task._count.predecessors > 0 && (
-                      <Tooltip title={`${task._count.predecessors} dependencies`}>
+                    {(task as any)._count && (task as any)._count.predecessors > 0 && (
+                      <Tooltip title={`${(task as any)._count.predecessors} dependencies`}>
                         <DependencyIcon fontSize="small" color="action" />
                       </Tooltip>
                     )}
@@ -445,7 +440,7 @@ function TaskList({ tasks, projectId, onTaskCreated, onTaskUpdated, onTaskDelete
       >
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleManageDependencies}>Manage Dependencies</MenuItem>
-        <MenuItem onClick={handleExport} startIcon={<ExportIcon />}>
+        <MenuItem onClick={handleExport}>
           Export to JIRA
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>

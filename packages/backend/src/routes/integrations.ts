@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { z } from 'zod';
 import { JiraService, importJiraProject, exportTaskToJira } from '../services/jiraIntegration.js';
 import { JiraSyncService } from '../services/jiraSyncService.js';

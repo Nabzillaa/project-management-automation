@@ -12,7 +12,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { projectsApi } from '../services/api/projects';
 import { tasksApi } from '../services/api/tasks';
 import TaskList from '../components/tasks/TaskList';

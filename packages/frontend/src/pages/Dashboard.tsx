@@ -6,11 +6,7 @@ import {
   Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  CardActions,
   Button,
-  Chip,
   CircularProgress,
   Alert,
   LinearProgress,
@@ -21,13 +17,10 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  AvatarGroup,
-  Avatar,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Folder as ProjectIcon,
-  TrendingUp as TrendingUpIcon,
   AttachMoney as MoneyIcon,
   Assignment as TaskIcon,
   CheckCircle as CheckCircleIcon,
@@ -36,21 +29,12 @@ import {
   Event as EventIcon,
   People as PeopleIcon,
   Speed as SpeedIcon,
-  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { projectsApi } from '../services/api/projects';
 import { useAuthStore } from '../stores/authStore';
-import { Project, ProjectStatus } from '@pm-app/shared';
+import { Project } from '@pm-app/shared';
 import ProjectForm from '../components/projects/ProjectForm';
-
-const statusColors: Record<ProjectStatus, 'default' | 'primary' | 'warning' | 'success' | 'error'> = {
-  planning: 'default',
-  active: 'primary',
-  on_hold: 'warning',
-  completed: 'success',
-  cancelled: 'error',
-};
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -161,24 +145,6 @@ function Dashboard() {
       </Alert>
     );
   }
-
-  const getBudgetHealthColor = (project: Project) => {
-    const budget = Number(project.budget || 0);
-    const spent = Number(project.actualCost || 0);
-    if (budget === 0) return 'info';
-    const utilization = (spent / budget) * 100;
-    if (utilization >= 100) return 'error';
-    if (utilization >= 90) return 'error';
-    if (utilization >= 75) return 'warning';
-    return 'success';
-  };
-
-  const getBudgetHealthIcon = (project: Project) => {
-    const color = getBudgetHealthColor(project);
-    if (color === 'error') return <ErrorIcon fontSize="small" />;
-    if (color === 'warning') return <WarningIcon fontSize="small" />;
-    return <CheckCircleIcon fontSize="small" />;
-  };
 
   const getProjectHealth = (project: Project) => {
     const budget = Number(project.budget || 0);
@@ -634,7 +600,7 @@ function Dashboard() {
       <ProjectForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        onSubmit={(data) => createMutation.mutateAsync(data)}
+        onSubmit={async (data) => { await createMutation.mutateAsync(data); }}
         loading={createMutation.isPending}
       />
     </Box>

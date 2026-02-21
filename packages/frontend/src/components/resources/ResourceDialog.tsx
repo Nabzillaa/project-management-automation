@@ -171,10 +171,10 @@ function ResourceDialog({ open, onClose, resource, organizationId }: ResourceDia
 
             <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Availability: {formData.availabilityHoursPerDayHoursPerDay}%
+                Availability: {formData.availabilityHoursPerDay}%
               </Typography>
               <Slider
-                value={formData.availabilityHoursPerDayHoursPerDay}
+                value={formData.availabilityHoursPerDay}
                 onChange={(_, value) =>
                   setFormData({ ...formData, availabilityHoursPerDay: value as number })
                 }

@@ -12,7 +12,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   IconButton,
   Tooltip,
@@ -30,7 +29,6 @@ import {
   Inventory as MaterialIcon,
 } from '@mui/icons-material';
 import { resourcesApi } from '../../services/api/resources';
-import { projectsApi } from '../../services/api/projects';
 import { format, addDays } from 'date-fns';
 import ResourceDialog from '../../components/resources/ResourceDialog';
 
@@ -257,11 +255,11 @@ function ResourcesPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 100 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={resource.availabilityHoursPerDay || 100}
+                            value={(resource as any).availabilityHoursPerDay || 100}
                             sx={{ flex: 1, height: 8, borderRadius: 4 }}
                           />
                           <Typography variant="caption">
-                            {resource.availabilityHoursPerDay || 100}%
+                            {(resource as any).availabilityHoursPerDay || 100}%
                           </Typography>
                         </Box>
                       </TableCell>

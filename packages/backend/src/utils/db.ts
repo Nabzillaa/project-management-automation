@@ -1,5 +1,8 @@
-import prisma from '@pm-app/database';
+import _prismaModule, { PrismaClient } from '@pm-app/database';
 import { logger } from './logger.js';
+
+// Handle CJS/ESM interop: tsx runs via ESM loader, so CJS default exports arrive as the whole exports object
+const prisma: InstanceType<typeof PrismaClient> = (_prismaModule as any).default ?? _prismaModule;
 
 // Connect to database
 prisma

@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import {
   Box,
-  Paper,
   Typography,
   Grid,
   Card,
@@ -31,12 +30,11 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  TrendingUp as TrendingIcon,
   AttachMoney as MoneyIcon,
   Refresh as RefreshIcon,
   UploadFile as UploadIcon,
 } from '@mui/icons-material';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { costsApi, CostEntry } from '../../services/api/costs';
 import { format } from 'date-fns';
 
@@ -90,7 +88,7 @@ function CostDashboard({ projectId }: CostDashboardProps) {
     queryFn: () => costsApi.getBreakdown(projectId),
   });
 
-  const { data: taskCosts, refetch: refetchTaskCosts } = useQuery({
+  const { data: taskCosts } = useQuery({
     queryKey: ['task-costs', projectId],
     queryFn: () => costsApi.getTaskCosts(projectId),
   });

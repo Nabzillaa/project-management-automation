@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 import { mapJiraStatus, mapJiraPriority } from './jiraIntegration.js';
 

@@ -6,6 +6,7 @@ export interface Resource {
   type: 'person' | 'equipment' | 'material';
   costPerHour?: number;
   availability?: number;
+  availabilityHoursPerDay?: number;
   isActive: boolean;
   organizationId: string;
   createdAt: string;

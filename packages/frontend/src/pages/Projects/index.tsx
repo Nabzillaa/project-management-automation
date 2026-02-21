@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Typography,
@@ -13,7 +13,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   IconButton,
   Tooltip,
@@ -33,7 +32,6 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { projectsApi } from '../../services/api/projects';
 import { Project, ProjectStatus } from '@pm-app/shared';
@@ -59,6 +57,7 @@ const statusLabels: Record<ProjectStatus, string> = {
 function ProjectsPage() {
   const navigate = useNavigate();
   // Use default organization ID (placeholder for single-org setup)
+  const queryClient = useQueryClient();
   const organizationId = '00000000-0000-0000-0000-000000000000';
   const [formOpen, setFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -85,6 +84,19 @@ function ProjectsPage() {
   const handleViewProject = (projectId: string) => {
     navigate(`/projects/${projectId}`);
   };
+
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (selectedProject) {
+        return projectsApi.update(selectedProject.id, data);
+      }
+      return projectsApi.create({ ...data, organizationId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      handleFormClose();
+    },
+  });
 
   const handleFormClose = () => {
     setFormOpen(false);
@@ -235,7 +247,7 @@ function ProjectsPage() {
                     const totalTasks = (project as any)._count?.tasks || 0;
                     // Estimate progress based on project status
                     const progress = project.status === 'completed' ? 100 :
-                                   project.status === 'in_progress' || project.status === 'active' ? 50 :
+                                   project.status === ProjectStatus.ACTIVE ? 50 :
                                    project.status === 'planning' ? 10 : 0;
 
                     return (
@@ -353,8 +365,9 @@ function ProjectsPage() {
       <ProjectForm
         open={formOpen}
         onClose={handleFormClose}
-        project={selectedProject}
-        organizationId={organizationId || ''}
+        onSubmit={async (data) => { await saveMutation.mutateAsync(data); }}
+        project={selectedProject ?? undefined}
+        loading={saveMutation.isPending}
       />
     </Box>
   );

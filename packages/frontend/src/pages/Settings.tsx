@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import {
@@ -31,7 +31,6 @@ import {
   CloudDownload as ImportIcon,
 } from '@mui/icons-material';
 import { integrationsApi, JiraCredentials, JiraProject } from '../services/api/integrations';
-import { projectsApi } from '../services/api/projects';
 import { adminApi } from '../services/api/admin';
 
 function Settings() {

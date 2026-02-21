@@ -1,14 +1,11 @@
 import Queue from 'bull';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 import { MicrosoftAuthService } from '../services/microsoftAuthService.js';
 
-const redis = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-};
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
-export const microsoftSyncQueue = new Queue('microsoft-profile-sync', redis);
+export const microsoftSyncQueue = new Queue('microsoft-profile-sync', REDIS_URL);
 
 microsoftSyncQueue.process(async (job) => {
   try {

@@ -1,4 +1,4 @@
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 import { JiraService, mapJiraStatus, mapJiraPriority, reverseMapStatus, reverseMapPriority } from './jiraIntegration.js';
 import type { JiraCredentials } from './jiraIntegration.js';

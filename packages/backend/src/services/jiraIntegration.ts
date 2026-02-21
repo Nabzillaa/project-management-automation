@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 
 export interface JiraCredentials {
@@ -362,7 +362,7 @@ export async function importJiraProject(
 /**
  * Map JIRA status to our status
  */
-function mapJiraStatus(jiraStatus: string): string {
+export function mapJiraStatus(jiraStatus: string): string {
   const statusLower = jiraStatus.toLowerCase();
   if (statusLower.includes('done') || statusLower.includes('closed')) {
     return 'completed';
@@ -379,7 +379,7 @@ function mapJiraStatus(jiraStatus: string): string {
 /**
  * Map JIRA priority to our priority
  */
-function mapJiraPriority(jiraPriority: string): string {
+export function mapJiraPriority(jiraPriority: string): string {
   const priorityLower = jiraPriority.toLowerCase();
   if (priorityLower.includes('high') || priorityLower.includes('critical') || priorityLower.includes('blocker')) {
     return 'high';

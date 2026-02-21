@@ -1,4 +1,4 @@
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 import { checkBudgetThresholds } from './budgetAlerts.js';
 

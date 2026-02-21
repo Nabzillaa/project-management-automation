@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { z } from 'zod';
 import { queueEmail, queueBudgetAlert, queueTaskReminder } from '../queues/notificationQueue.js';
 

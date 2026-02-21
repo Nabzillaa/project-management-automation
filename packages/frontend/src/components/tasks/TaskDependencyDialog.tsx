@@ -87,13 +87,13 @@ function TaskDependencyDialog({ open, onClose, task, allTasks, onUpdate }: TaskD
   // Filter out the current task and tasks that are already dependencies
   const availableTasks = allTasks.filter(t => {
     if (t.id === task?.id) return false;
-    const existingDeps = task?.predecessorDeps || [];
+    const existingDeps = (task as any)?.predecessorDeps || [];
     return !existingDeps.some((dep: any) => dep.predecessorTaskId === t.id);
   });
 
   if (!task) return null;
 
-  const predecessorDeps = task.predecessorDeps || [];
+  const predecessorDeps = (task as any).predecessorDeps || [];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

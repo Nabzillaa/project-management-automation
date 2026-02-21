@@ -1,5 +1,5 @@
 import { parse } from 'csv-parse/sync';
-import prisma from '@pm-app/database';
+import prisma from '../utils/db.js';
 import { logger } from '../utils/logger.js';
 
 export interface ImportResult {
